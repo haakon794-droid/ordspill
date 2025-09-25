@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+  <meta charset="UTF-8">
+  <title>Ordklasse-spill</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin: 20px;
+    }
+    .ord {
+      display: inline-block;
+      padding: 8px 15px;
+      margin: 5px;
+      background: #f0f0f0;
+      border: 1px solid #aaa;
+      border-radius: 6px;
+      cursor: grab;
+    }
+    .boks {
+      display: inline-block;
+      width: 200px;
+      height: 150px;
+      border: 2px dashed #555;
+      border-radius: 8px;
+      margin: 15px;
+      vertical-align: top;
+      padding: 10px;
+      background: #fafafa;
+    }
+    .boks h3 {
+      margin-top: 0;
+    }
+    .riktig { background-color: #c2f7c2 !important; }
+    .feil { background-color: #f7c2c2 !important; }
+  </style>
+</head>
+<body>
+  <h1>Sorter ordene i riktig ordklasse</h1>
+  <p>Dra ordene inn i riktig boks!</p>
+
+  <div id="ordListe"></div>
+
+  <div>
+    <div class="boks" data-klasse="substantiv"><h3>Substantiv</h3></div>
+    <div class="boks" data-klasse="verb"><h3>Verb</h3></div>
+    <div class="boks" data-klasse="adjektiv"><h3>Adjektiv</h3></div>
+  </div>
+
+  <p id="score">Poeng: 0</p>
+
+  <script>
+    const ordklasser = {
+      substantiv: ["hund", "hus", "blomst", "bord"],
+      verb: ["løpe", "spise", "hoppe", "lese"],
+      adjektiv: ["rask", "stor", "pen", "lykkelig"]
+    };
+
+    let poeng = 0;
+    const ordListeDiv = document.getElementById("ordListe");
+
+    // Lag ord-elementer
+    for (const klasse in ordklasser) {
+      ordklasser[klasse].forEach(ord => {
+        const span = document.createElement("span");
+        span.textContent = ord;
+        span.className = "ord";
+        span.draggable = true;
+        span.dataset.klasse = klasse;
+        ordListeDiv.appendChild(span);
+      });
+    }
+
+    // Dra og slipp
+    document.querySelectorAll(".ord").forEach(el => {
+      el.addEventListener("dragstart", e => {
+        e.dataTransfer.setData("ord", e.target.textContent);
+        e.dataTransfer.setData("klasse", e.target.dataset.klasse);
+        e.target.style.opacity = "0.5";
+      });
+      el.addEventListener("dragend", e => {
+        e.target.style.opacity = "1";
+      });
+    });
+
+    document.querySelectorAll(".boks").forEach(boks => {
+      boks.addEventListener("dragover", e => e.preventDefault());
+      boks.addEventListener("drop", e => {
+        e.preventDefault();
+        const ord = e.dataTransfer.getData("ord");
+        const klasse = e.dataTransfer.getData("klasse");
+        const korrekt = boks.dataset.klasse === klasse;
+
+        const ordEl = Array.from(document.querySelectorAll(".ord"))
+          .find(el => el.textContent === ord);
+
+        if (korrekt) {
+          boks.appendChild(ordEl);
+          boks.classList.add("riktig");
+          setTimeout(() => boks.classList.remove("riktig"), 500);
+          poeng++;
+        } else {
+          boks.classList.add("feil");
+          setTimeout(() => boks.classList.remove("feil"), 500);
+          poeng--;
+        }
+        document.getElementById("score").textContent = "Poeng: " + poeng;
+      });
+    });
+  </script>
+</body>
+</html>
